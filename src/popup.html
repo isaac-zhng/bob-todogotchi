@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IBM Bob</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 220px; height: 320px;
+      overflow: hidden;
+      background: transparent;
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+
+    #card {
+      width: 200px;
+      background: #fff;
+      border-radius: 16px;
+      border: 2px solid #e0e0e0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      padding: 14px 14px 16px;
+      margin: 10px auto 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Name tag */
+    #name-tag {
+      background: #0f62fe;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* Avatar canvas */
+    #avatar { display: block; }
+
+    /* Speech bubble */
+    #bubble {
+      background: #f4f4f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #161616;
+      text-align: center;
+      width: 100%;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Health bar */
+    #health-row {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #health-row label {
+      font-size: 11px;
+      color: #6f6f6f;
+      display: flex;
+      justify-content: space-between;
+    }
+    #hp-track {
+      width: 100%;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    #hp-fill {
+      height: 100%;
+      background: #42be65;
+      border-radius: 5px;
+      transition: width .6s ease, background .6s ease;
+    }
+
+    /* Task summary */
+    #task-summary {
+      font-size: 11px;
+      color: #6f6f6f;
+      text-align: center;
+    }
+
+    /* Close button — not draggable */
+    #close-btn {
+      -webkit-app-region: no-drag;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #6f6f6f;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #close-btn:hover { color: #da1e28; }
+  </style>
+</head>
+<body>
+  <button id="close-btn" title="Close Bob">×</button>
+
+  <div id="card">
+    <div id="name-tag">IBM Bob</div>
+    <canvas id="avatar" width="90" height="90"></canvas>
+    <div id="bubble">Hello! Add some tasks!</div>
+    <div id="health-row">
+      <label><span>Health</span><span id="hp-pct">100%</span></label>
+      <div id="hp-track"><div id="hp-fill" style="width:100%"></div></div>
+    </div>
+    <div id="task-summary">No tasks yet</div>
+  </div>
+
+  <script>
+    /* ── Bob pixel avatar drawn on canvas ── */
+    function drawBob(health) {
+      const canvas = document.getElementById('avatar');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      // mood based on health
+      const mood = health > 60 ? 'happy' : health > 30 ? 'neutral' : 'sad';
+      const bodyColor = health > 60 ? '#0f62fe' : health > 30 ? '#f1c21b' : '#da1e28';
+
+      // body (rounded rect)
+      ctx.fillStyle = bodyColor;
+      roundRect(ctx, 20, 30, 50, 45, 12);
+      ctx.fill();
+
+      // head
+      ctx.fillStyle = '#ffd6a5';
+      roundRect(ctx, 25, 5, 40, 36, 14);
+      ctx.fill();
+
+      // eyes
+      ctx.fillStyle = '#161616';
+      ctx.beginPath();
+      ctx.arc(36, 20, 4, 0, Math.PI * 2);
+      ctx.arc(54, 20, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // eye highlights
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(38, 18, 1.5, 0, Math.PI * 2);
+      ctx.arc(56, 18, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // mouth
+      ctx.strokeStyle = '#161616';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      if (mood === 'happy') {
+        ctx.arc(45, 28, 8, 0.2, Math.PI - 0.2);
+      } else if (mood === 'neutral') {
+        ctx.moveTo(38, 31); ctx.lineTo(52, 31);
+      } else {
+        ctx.arc(45, 36, 8, Math.PI + 0.2, -0.2);
+      }
+      ctx.stroke();
+
+      // arms
+      ctx.strokeStyle = bodyColor;
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      // left arm
+      ctx.beginPath(); ctx.moveTo(20, 45); ctx.lineTo(6, mood === 'happy' ? 36 : 50); ctx.stroke();
+      // right arm
+      ctx.beginPath(); ctx.moveTo(70, 45); ctx.lineTo(84, mood === 'happy' ? 36 : 50); ctx.stroke();
+
+      // legs
+      ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.moveTo(33, 75); ctx.lineTo(28, 88); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(57, 75); ctx.lineTo(62, 88); ctx.stroke();
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    /* ── Quips ── */
+    const QUIPS = {
+      happy: [
+        "You're crushing it! 🎉",
+        "Look at you go!",
+        "Tasks done = Bob happy!",
+        "Keep up the great work!",
+        "Productivity level: max!",
+      ],
+      neutral: [
+        "Almost there, keep going!",
+        "A few more tasks to go.",
+        "You've got this!",
+        "Steady progress!",
+        "Half way there!",
+      ],
+      sad: [
+        "I believe in you…",
+        "Please complete some tasks!",
+        "I need those checkmarks…",
+        "Don't give up on me!",
+        "Tasks = my life force.",
+      ],
+    };
+
+    function getQuip(health) {
+      const mood = health > 60 ? 'happy' : health > 30 ? 'neutral' : 'sad';
+      const arr = QUIPS[mood];
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    /* ── State + render ── */
+    let state = { tasks: [], health: 100 };
+    let quipTimer = null;
+
+    function updateUI() {
+      const pct = state.health;
+      document.getElementById('hp-fill').style.width = pct + '%';
+      document.getElementById('hp-fill').style.background =
+        pct > 60 ? '#42be65' : pct > 30 ? '#f1c21b' : '#da1e28';
+      document.getElementById('hp-pct').textContent = pct + '%';
+
+      const tasks = state.tasks || [];
+      const done = tasks.filter(t => t.done).length;
+      document.getElementById('task-summary').textContent =
+        tasks.length === 0 ? 'No tasks yet' : done + ' / ' + tasks.length + ' tasks done';
+
+      document.getElementById('bubble').textContent = getQuip(pct);
+      drawBob(pct);
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('bob-state');
+        if (saved) state = JSON.parse(saved);
+      } catch (_) {}
+    }
+
+    /* ── IPC sync ── */
+    if (window.electronAPI) {
+      window.electronAPI.onStateSync(json => {
+        try { state = JSON.parse(json); } catch (_) {}
+        updateUI();
+      });
+    }
+
+    document.getElementById('close-btn').addEventListener('click', () => {
+      if (window.electronAPI) window.electronAPI.closeBobPopup();
+    });
+
+    /* ── Rotate quip every 8 s ── */
+    quipTimer = setInterval(updateUI, 8000);
+
+    loadState();
+    updateUI();
+  </script>
+</body>
+</html>
