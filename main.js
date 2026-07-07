@@ -41,20 +41,21 @@ function createBobWindow() {
   });
 }
 
-ipcMain.on('open-bob-popup',  () => createBobWindow());
-ipcMain.on('close-bob-popup', () => { if (bobWindow && !bobWindow.isDestroyed()) bobWindow.close(); });
-ipcMain.on('state-update', (event, stateJSON) => {
-  const sender = event.sender;
-  if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents !== sender)
-    mainWindow.webContents.send('state-sync', stateJSON);
-  if (bobWindow && !bobWindow.isDestroyed() && bobWindow.webContents !== sender)
-    bobWindow.webContents.send('state-sync', stateJSON);
-});
-ipcMain.on('bob-move', (event, { x, y }) => {
-  if (bobWindow && !bobWindow.isDestroyed()) bobWindow.setPosition(x, y);
-});
-
 app.whenReady().then(() => {
+  // Register IPC handlers
+  ipcMain.on('open-bob-popup',  () => createBobWindow());
+  ipcMain.on('close-bob-popup', () => { if (bobWindow && !bobWindow.isDestroyed()) bobWindow.close(); });
+  ipcMain.on('state-update', (event, stateJSON) => {
+    const sender = event.sender;
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents !== sender)
+      mainWindow.webContents.send('state-sync', stateJSON);
+    if (bobWindow && !bobWindow.isDestroyed() && bobWindow.webContents !== sender)
+      bobWindow.webContents.send('state-sync', stateJSON);
+  });
+  ipcMain.on('bob-move', (event, { x, y }) => {
+    if (bobWindow && !bobWindow.isDestroyed()) bobWindow.setPosition(x, y);
+  });
+
   createMainWindow();
   createBobWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createMainWindow(); });

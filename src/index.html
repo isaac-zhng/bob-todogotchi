@@ -158,6 +158,35 @@
       outline-offset: -2px;
     }
 
+    /* ── Carbon Select Input ── */
+    .cds--select-input {
+      font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      color: var(--cds-text-primary);
+      background: var(--cds-layer-01);
+      border: none;
+      border-bottom: 1px solid var(--cds-border-strong-01);
+      outline: none;
+      height: 40px;
+      padding: 0 var(--cds-spacing-04);
+      width: 100%;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23161616' d='M8 11L3 6l.7-.7L8 9.6l4.3-4.3.7.7z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 40px;
+    }
+    .cds--select-input:focus {
+      outline: 2px solid var(--cds-focus);
+      outline-offset: -2px;
+    }
+    .cds--select-input option {
+      font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      padding: 8px;
+    }
+
     /* ── Carbon Primary Button ── */
     .cds--btn--primary {
       font-family: inherit;
@@ -300,6 +329,73 @@
       outline: 2px solid var(--cds-focus);
       outline-offset: -2px;
     }
+    .cds--btn--ghost--icon.edit-btn {
+      color: var(--cds-icon-secondary);
+    }
+    .cds--btn--ghost--icon.edit-btn:hover {
+      color: var(--cds-interactive);
+    }
+
+    /* ── Edit Modal ── */
+    #edit-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #edit-modal.active {
+      display: flex;
+    }
+    .edit-modal-content {
+      background: var(--cds-layer-01);
+      padding: var(--cds-spacing-07);
+      border-radius: 4px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .edit-modal-header {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: var(--cds-spacing-05);
+      color: var(--cds-text-primary);
+    }
+    .edit-modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--cds-spacing-05);
+    }
+    .edit-modal-footer {
+      display: flex;
+      gap: var(--cds-spacing-04);
+      justify-content: flex-end;
+      margin-top: var(--cds-spacing-06);
+    }
+    .cds--btn--secondary {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      background: transparent;
+      color: var(--cds-text-primary);
+      border: 1px solid var(--cds-interactive);
+      height: 40px;
+      padding: 0 var(--cds-spacing-07);
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      letter-spacing: .16px;
+    }
+    .cds--btn--secondary:hover {
+      background: var(--cds-interactive);
+      color: var(--cds-text-on-color);
+    }
 
     /* ── Checklist tab bar ── */
     .checklist-tabs {
@@ -331,8 +427,7 @@
       font-weight: 600;
     }
     .checklist-tab:focus {
-      outline: 2px solid var(--cds-focus);
-      outline-offset: -2px;
+      outline: none;
     }
 
     /* ── Empty state (Carbon inline notification style) ── */
@@ -436,12 +531,13 @@
     </div>
     <div class="cds--form-item" style="max-width: 180px;">
       <label class="cds--label" for="deadline-input" id="deadline-label">Deadline (time)</label>
-      <input
+      <select
         id="deadline-input"
-        class="cds--text-input"
-        type="time"
+        class="cds--select-input"
         aria-label="Task deadline"
-      />
+      >
+        <option value="">Select time</option>
+      </select>
     </div>
     <button id="add-btn" class="cds--btn--primary">Add task</button>
   </div>
@@ -457,6 +553,38 @@
   <div id="task-list-wrapper">
     <ul id="task-list" role="list"></ul>
     <div id="empty-msg" role="status">No tasks yet — add one above to get started.</div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div id="edit-modal">
+    <div class="edit-modal-content">
+      <div class="edit-modal-header">Edit Task</div>
+      <div class="edit-modal-body">
+        <div class="cds--form-item">
+          <label class="cds--label" for="edit-task-input">Task name</label>
+          <input
+            id="edit-task-input"
+            class="cds--text-input"
+            type="text"
+            placeholder="Task name"
+            autocomplete="off"
+          />
+        </div>
+        <div class="cds--form-item">
+          <label class="cds--label" for="edit-deadline-input" id="edit-deadline-label">Deadline</label>
+          <select
+            id="edit-deadline-input"
+            class="cds--select-input"
+          >
+            <option value="">Select time</option>
+          </select>
+        </div>
+      </div>
+      <div class="edit-modal-footer">
+        <button id="edit-cancel-btn" class="cds--btn--secondary">Cancel</button>
+        <button id="edit-save-btn" class="cds--btn--primary">Save</button>
+      </div>
+    </div>
   </div>
 
   <!-- IBM Bob tamagotchi — official ibm.com asset -->
@@ -541,6 +669,27 @@
   </div>
 
   <script>
+    /* ── Initialize time select options (30-minute intervals) ── */
+    function populateTimeOptions(selectElement) {
+      // Clear existing options except the first one
+      selectElement.innerHTML = '<option value="">Select time</option>';
+      
+      // Generate time options in 30-minute intervals
+      for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          const period = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+          
+          const option = document.createElement('option');
+          option.value = timeValue;
+          option.textContent = displayTime;
+          selectElement.appendChild(option);
+        }
+      }
+    }
+
     /* ── State ── */
     let state = {
       daily: [], weekly: [], monthly: [],
@@ -637,10 +786,22 @@
       const deadlineInput = document.getElementById('deadline-input');
       const deadlineLabel = document.getElementById('deadline-label');
       if (state.activeTab === 'daily') {
-        deadlineInput.type = 'time';
+        // For daily tasks, use time select with 15-min intervals
+        if (deadlineInput.tagName === 'SELECT') {
+          populateTimeOptions(deadlineInput);
+        }
         deadlineLabel.textContent = 'Deadline (time)';
       } else {
-        deadlineInput.type = 'date';
+        // For weekly/monthly, convert to date input
+        if (deadlineInput.tagName === 'SELECT') {
+          const parent = deadlineInput.parentElement;
+          const newInput = document.createElement('input');
+          newInput.id = 'deadline-input';
+          newInput.className = 'cds--text-input';
+          newInput.type = 'date';
+          newInput.setAttribute('aria-label', 'Task deadline');
+          parent.replaceChild(newInput, deadlineInput);
+        }
         deadlineLabel.textContent = 'Deadline (date)';
       }
 
@@ -694,6 +855,14 @@
           
           label.addEventListener('click', () => toggleTask(idx));
 
+          // Edit button
+          const edit = document.createElement('button');
+          edit.className = 'cds--btn--ghost--icon edit-btn';
+          edit.innerHTML = '&#x270E;'; // Pencil icon
+          edit.title = 'Edit task';
+          edit.setAttribute('aria-label', 'Edit: ' + task.text);
+          edit.addEventListener('click', () => openEditModal(idx));
+
           const del = document.createElement('button');
           del.className = 'cds--btn--ghost--icon';
           del.innerHTML = '&#x2715;';
@@ -703,6 +872,7 @@
 
           li.appendChild(cbWrap);
           li.appendChild(label);
+          li.appendChild(edit);
           li.appendChild(del);
           list.appendChild(li);
         });
@@ -807,6 +977,80 @@
       render();
     }
 
+    /* ── Edit task functions ── */
+    let editingTaskIndex = null;
+
+    function openEditModal(idx) {
+      editingTaskIndex = idx;
+      const task = activeTasks()[idx];
+      const modal = document.getElementById('edit-modal');
+      const taskInput = document.getElementById('edit-task-input');
+      let deadlineInput = document.getElementById('edit-deadline-input');
+      const deadlineLabel = document.getElementById('edit-deadline-label');
+      
+      // Set current values
+      taskInput.value = task.text;
+      
+      // Update deadline input type based on active tab
+      if (state.activeTab === 'daily') {
+        // For daily tasks, use time select with 15-min intervals
+        if (deadlineInput.tagName !== 'SELECT') {
+          const parent = deadlineInput.parentElement;
+          const newSelect = document.createElement('select');
+          newSelect.id = 'edit-deadline-input';
+          newSelect.className = 'cds--select-input';
+          parent.replaceChild(newSelect, deadlineInput);
+          deadlineInput = newSelect;
+        }
+        populateTimeOptions(deadlineInput);
+        deadlineInput.value = task.deadline || '';
+        deadlineLabel.textContent = 'Deadline (time)';
+      } else {
+        // For weekly/monthly, use date input
+        if (deadlineInput.tagName !== 'INPUT') {
+          const parent = deadlineInput.parentElement;
+          const newInput = document.createElement('input');
+          newInput.id = 'edit-deadline-input';
+          newInput.className = 'cds--text-input';
+          newInput.type = 'date';
+          parent.replaceChild(newInput, deadlineInput);
+          deadlineInput = newInput;
+        }
+        deadlineInput.value = task.deadline || '';
+        deadlineLabel.textContent = 'Deadline (date)';
+      }
+      
+      modal.classList.add('active');
+      taskInput.focus();
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('active');
+      editingTaskIndex = null;
+    }
+
+    function saveEditedTask() {
+      if (editingTaskIndex === null) return;
+      
+      const taskInput = document.getElementById('edit-task-input');
+      const deadlineInput = document.getElementById('edit-deadline-input');
+      const newText = taskInput.value.trim();
+      
+      if (!newText) {
+        alert('Task name cannot be empty');
+        return;
+      }
+      
+      const task = activeTasks()[editingTaskIndex];
+      task.text = newText;
+      task.deadline = deadlineInput.value || null;
+      
+      saveAndBroadcast();
+      render();
+      closeEditModal();
+    }
+
     /* ── UI events ── */
     document.getElementById('add-btn').addEventListener('click', () => {
       const input = document.getElementById('new-task-input');
@@ -836,6 +1080,21 @@
       });
     });
 
+    // Edit modal event listeners
+    document.getElementById('edit-save-btn').addEventListener('click', saveEditedTask);
+    document.getElementById('edit-cancel-btn').addEventListener('click', closeEditModal);
+    
+    // Close modal when clicking outside
+    document.getElementById('edit-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'edit-modal') closeEditModal();
+    });
+    
+    // Save on Enter key in edit modal
+    document.getElementById('edit-task-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') saveEditedTask();
+      if (e.key === 'Escape') closeEditModal();
+    });
+
     document.getElementById('bob-toggle-btn').addEventListener('click', () => {
       state.bobVisible = !state.bobVisible;
       if (window.electronAPI) {
@@ -859,6 +1118,12 @@
     }
 
     /* ── Boot ── */
+    // Initialize time select options on page load
+    const deadlineInput = document.getElementById('deadline-input');
+    if (deadlineInput && deadlineInput.tagName === 'SELECT') {
+      populateTimeOptions(deadlineInput);
+    }
+    
     loadState();
     render();
   </script>
