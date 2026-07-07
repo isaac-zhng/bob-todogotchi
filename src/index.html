@@ -297,6 +297,74 @@
       font-size: 14px;
       letter-spacing: .16px;
     }
+
+    /* ── Bob tamagotchi widget (bottom-right) ── */
+    #bob-widget {
+      position: fixed;
+      bottom: 0;
+      right: var(--cds-spacing-05);
+      width: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      z-index: 100;
+      pointer-events: none;
+    }
+    /* Speech bubble above Bob */
+    #bob-quip {
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-01);
+      border-left: 3px solid var(--cds-interactive);
+      padding: 6px 8px;
+      font-size: 11px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      color: var(--cds-text-primary);
+      line-height: 1.4;
+      letter-spacing: .16px;
+      width: 120px;
+      /* Tail pointing down-center */
+      position: relative;
+      margin-bottom: 6px;
+    }
+    #bob-quip::after {
+      content: '';
+      position: absolute;
+      bottom: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 7px solid var(--cds-border-subtle-01);
+    }
+    #bob-quip::before {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid var(--cds-layer-01);
+      z-index: 1;
+    }
+    /* The Bob image — crop one of the three poses from bob-modes.png */
+    #bob-sprite-wrap {
+      width: 80px;
+      height: 120px;
+      overflow: hidden;
+      position: relative;
+    }
+    #bob-sprite {
+      /* bob-modes.png is 782×504 and shows 3 poses side-by-side.
+         Each pose is ~260×504 px wide.
+         We scale + shift to show only the relevant pose at 80px wide. */
+      position: absolute;
+      height: 120px;
+      width: auto;
+      /* default: happy pose (left third) */
+      left: 0;
+    }
   </style>
 </head>
 <body>
@@ -333,6 +401,14 @@
   <div id="task-list-wrapper">
     <ul id="task-list" role="list"></ul>
     <div id="empty-msg" role="status">No tasks yet — add one above to get started.</div>
+  </div>
+
+  <!-- IBM Bob tamagotchi — official ibm.com asset -->
+  <div id="bob-widget" aria-hidden="true">
+    <div id="bob-quip">Hello! Add some tasks!</div>
+    <div id="bob-sprite-wrap">
+      <img id="bob-sprite" src="assets/bob-modes.png" alt="IBM Bob" draggable="false" />
+    </div>
   </div>
 
   <script>
@@ -422,7 +498,49 @@
       // Toggle button label
       document.getElementById('bob-toggle-btn').textContent =
         state.bobVisible ? 'Hide Bob' : 'Show Bob';
+
+      // Bob widget — pose + quip
+      updateBobWidget(pct);
     }
+
+    /* ── Bob widget ── */
+    const BOB_QUIPS = {
+      happy:   ['You\'re crushing it!', 'Tasks done = Bob happy!', 'Keep up the great work!', 'Productivity level: max!', 'Look at you go!'],
+      neutral: ['Almost there!', 'A few more tasks to go.', 'You\'ve got this.', 'Steady progress.', 'Half way there!'],
+      sad:     ['I believe in you\u2026', 'Please complete some tasks!', 'I need those checkmarks\u2026', 'Don\'t give up on me!', 'Tasks = my life force.'],
+    };
+    let _lastQuip = '';
+
+    function updateBobWidget(pct) {
+      const mood   = pct > 60 ? 'happy' : pct > 30 ? 'neutral' : 'sad';
+      const sprite = document.getElementById('bob-sprite');
+      const wrap   = document.getElementById('bob-sprite-wrap');
+
+      // bob-modes.png is 782×504px with 3 poses side-by-side (~260px each).
+      // We display at height:120px → scale = 120/504 ≈ 0.238 → each pose is ~62px wide.
+      // Pose order (left→right): happy | neutral | sad
+      const SCALE        = 120 / 504;
+      const POSE_W_ORIG  = 782 / 3;           // ~260px
+      const POSE_W_DISP  = POSE_W_ORIG * SCALE; // ~62px
+      const poseIndex    = mood === 'happy' ? 0 : mood === 'neutral' ? 1 : 2;
+      const leftOffset   = -(poseIndex * POSE_W_ORIG * SCALE);
+
+      sprite.style.height = '120px';
+      sprite.style.width  = 'auto';
+      sprite.style.left   = leftOffset + 'px';
+      wrap.style.width    = Math.round(POSE_W_DISP) + 'px';
+
+      // Quip — pick a new one from the right mood pool
+      const pool = BOB_QUIPS[mood];
+      let quip   = pool[Math.floor(Math.random() * pool.length)];
+      // avoid repeating the same quip twice in a row
+      if (quip === _lastQuip && pool.length > 1) quip = pool[(pool.indexOf(quip) + 1) % pool.length];
+      _lastQuip = quip;
+      document.getElementById('bob-quip').textContent = quip;
+    }
+
+    /* Rotate quip every 10 s */
+    setInterval(() => updateBobWidget(state.health), 10000);
 
     /* ── Actions ── */
     function addTask(text) {
