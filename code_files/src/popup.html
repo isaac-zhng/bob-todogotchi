@@ -109,14 +109,14 @@
       align-items: center;
     }
 
-    /* ── Health section ── */
-    #health-section {
+    /* ── Happiness section ── */
+    #happiness-section {
       padding: var(--cds-spacing-03) var(--cds-spacing-04) var(--cds-spacing-02);
       display: flex;
       flex-direction: column;
       gap: var(--cds-spacing-01);
     }
-    #health-label-row {
+    #happiness-label-row {
       display: flex;
       justify-content: space-between;
       font-size: 11px;
@@ -163,12 +163,12 @@
 
     <div id="bubble" role="status" aria-live="polite">Hello! Add some tasks!</div>
 
-    <div id="health-section">
-      <div id="health-label-row">
-        <span>Health</span>
+    <div id="happiness-section">
+      <div id="happiness-label-row">
+        <span>Happiness</span>
         <span id="hp-pct">100%</span>
       </div>
-      <div id="hp-track" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Bob's health">
+      <div id="hp-track" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Bob's happiness">
         <div id="hp-fill" style="width:100%"></div>
       </div>
     </div>
@@ -185,8 +185,8 @@
       sad:     'M144.5,179.4c12,-5,18,-5.5,30,0',
     };
 
-    function updateMouth(health) {
-      const mood = health > 60 ? 'happy' : health > 30 ? 'neutral' : 'sad';
+    function updateMouth(happiness) {
+      const mood = happiness > 60 ? 'happy' : happiness > 30 ? 'neutral' : 'sad';
       const svgDoc = document.getElementById('avatar').contentDocument;
       if (!svgDoc) return;
       const mouth = svgDoc.getElementById('bob-mouth');
@@ -200,17 +200,17 @@
       sad:     ["I believe in you…", "Please complete some tasks!", "I need those checkmarks…", "Don't give up on me!", "Tasks = my life force."],
     };
 
-    function getQuip(health) {
-      const mood = health > 60 ? 'happy' : health > 30 ? 'neutral' : 'sad';
+    function getQuip(happiness) {
+      const mood = happiness > 60 ? 'happy' : happiness > 30 ? 'neutral' : 'sad';
       const arr  = QUIPS[mood];
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
     /* ── State ── */
-    let state = { tasks: [], health: 100 };
+    let state = { tasks: [], happiness: 100 };
 
     function updateUI() {
-      const pct = state.health;
+      const pct = state.happiness;
 
       // Progress bar
       const fill = document.getElementById('hp-fill');

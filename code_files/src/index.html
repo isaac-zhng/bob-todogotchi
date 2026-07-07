@@ -79,8 +79,8 @@
       color: #c6c6c6;
     }
 
-    /* health bar in header */
-    .header-health {
+    /* happiness bar in header */
+    .header-happiness {
       display: flex;
       align-items: center;
       gap: var(--cds-spacing-03);
@@ -533,10 +533,10 @@
   <!-- Carbon UI Shell Header -->
   <header class="cds--header" role="banner">
     <a class="cds--header__name" href="#">IBM Bob <span>Todogotchi</span></a>
-    <div class="header-health" aria-label="Bob's health">
-      <span id="health-label">Bob: 100%</span>
+    <div class="header-happiness" aria-label="Bob's happiness">
+      <span id="happiness-label">Bob: 100%</span>
       <div class="cds--progress-bar--header" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
-        <div id="health-fill" class="cds--progress-bar__bar" style="width:100%"></div>
+        <div id="happiness-fill" class="cds--progress-bar__bar" style="width:100%"></div>
       </div>
     </div>
     <button id="bob-toggle-btn" class="cds--btn--ghost--sm">Show Bob</button>
@@ -725,7 +725,7 @@
     let state = {
       daily: [], weekly: [], monthly: [],
       activeTab: 'daily',
-      health: 100,
+      happiness: 100,
       bobVisible: false,
       streak: 0,
       lastStreakDate: null   // ISO date string "YYYY-MM-DD" of last task-added day
@@ -785,7 +785,7 @@
             state.weekly     = [];
             state.monthly    = [];
             state.activeTab  = 'daily';
-            state.health     = parsed.health ?? 100;
+            state.happiness  = parsed.happiness ?? parsed.health ?? 100;
             state.bobVisible = parsed.bobVisible ?? false;
           } else {
             state = parsed;
@@ -804,12 +804,12 @@
       if (window.electronAPI) window.electronAPI.broadcastState(json);
     }
 
-    /* ── Health calculation ── */
+    /* ── Happiness calculation ── */
     function recalcHealth() {
       const tasks = activeTasks();
-      if (tasks.length === 0) { state.health = 100; return; }
+      if (tasks.length === 0) { state.happiness = 100; return; }
       const done = tasks.filter(t => t.done).length;
-      state.health = Math.round((done / tasks.length) * 100);
+      state.happiness = Math.round((done / tasks.length) * 100);
     }
 
     /* ── Render ── */
@@ -931,13 +931,13 @@
         });
       }
 
-      // Health bar
-      const pct  = state.health;
-      const fill = document.getElementById('health-fill');
+      // Happiness bar
+      const pct  = state.happiness;
+      const fill = document.getElementById('happiness-fill');
       fill.style.width = pct + '%';
       fill.style.background =
         pct > 60 ? '#24a148' : pct > 30 ? '#f1c21b' : '#da1e28';
-      document.getElementById('health-label').textContent = 'Bob: ' + pct + '%';
+      document.getElementById('happiness-label').textContent = 'Bob: ' + pct + '%';
       document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', pct);
 
       // Toggle button label
@@ -1004,7 +1004,7 @@
     }
 
     /* Rotate quip every 10 s */
-    setInterval(() => updateBobWidget(state.health), 10000);
+    setInterval(() => updateBobWidget(state.happiness), 10000);
 
     /* ── Actions ── */
     /* ── Streak helpers ── */
