@@ -1,6 +1,6 @@
 # IBM Bob Todogotchi 🤖
 
-Work can get overwhelming, but the Bob Todogotchi got you covered! Inspired by tamagotchis, Bob requires your completion of tasks to stay happy and healthy. Neglect your to-do list and watch Bob's health take a nosedive. Stay on top of things and Bob thrives right alongside you.
+Work can get overwhelming, but the Bob Todogotchi got you covered! Inspired by tamagotchis, Bob requires your completion of tasks to stay happy and healthy. Neglect your to-do list and watch Bob's health take a nosedive. Stay on top of things and Bob thrives right alongside you. To extend your streak, add a task on a weekday. Your streak won't reset on weekends, so don't worry about doing work then!
 
 ---
 
