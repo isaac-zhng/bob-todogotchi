@@ -160,6 +160,15 @@
       outline-offset: -2px;
     }
 
+    /* ── Carbon date input — enforce IBM Plex Sans over browser default ── */
+    input[type="date"].cds--select-input {
+      font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      color: var(--cds-text-primary);
+      padding-right: var(--cds-spacing-04);
+      background-image: none;
+    }
+
     /* ── Carbon Select Input ── */
     .cds--select-input {
       font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
@@ -788,18 +797,16 @@
       const deadlineInput = document.getElementById('deadline-input');
       const deadlineLabel = document.getElementById('deadline-label');
       if (state.activeTab === 'daily') {
-        // For daily tasks, use time select with 15-min intervals
         if (deadlineInput.tagName === 'SELECT') {
           populateTimeOptions(deadlineInput);
         }
         deadlineLabel.textContent = 'Deadline (time)';
       } else {
-        // For weekly/monthly, convert to date input
         if (deadlineInput.tagName === 'SELECT') {
           const parent = deadlineInput.parentElement;
           const newInput = document.createElement('input');
           newInput.id = 'deadline-input';
-          newInput.className = 'cds--text-input';
+          newInput.className = 'cds--select-input';
           newInput.type = 'date';
           newInput.setAttribute('aria-label', 'Task deadline');
           parent.replaceChild(newInput, deadlineInput);
@@ -995,7 +1002,7 @@
       
       // Update deadline input type based on active tab
       if (state.activeTab === 'daily') {
-        // For daily tasks, use time select with 15-min intervals
+        // Switch to time <select> if currently showing date group
         if (deadlineInput.tagName !== 'SELECT') {
           const parent = deadlineInput.parentElement;
           const newSelect = document.createElement('select');
@@ -1008,12 +1015,11 @@
         deadlineInput.value = task.deadline || '';
         deadlineLabel.textContent = 'Deadline (time)';
       } else {
-        // For weekly/monthly, use date input
         if (deadlineInput.tagName !== 'INPUT') {
           const parent = deadlineInput.parentElement;
           const newInput = document.createElement('input');
           newInput.id = 'edit-deadline-input';
-          newInput.className = 'cds--text-input';
+          newInput.className = 'cds--select-input';
           newInput.type = 'date';
           parent.replaceChild(newInput, deadlineInput);
           deadlineInput = newInput;
