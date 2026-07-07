@@ -301,7 +301,7 @@
     /* ── Bob tamagotchi widget (bottom-right) ── */
     #bob-widget {
       position: fixed;
-      bottom: 0;
+      bottom: var(--cds-spacing-05);
       right: var(--cds-spacing-05);
       width: 120px;
       display: flex;
@@ -348,22 +348,13 @@
       border-top: 6px solid var(--cds-layer-01);
       z-index: 1;
     }
-    /* The Bob image — crop one of the three poses from bob-modes.png */
     #bob-sprite-wrap {
       width: 80px;
-      height: 120px;
-      overflow: hidden;
-      position: relative;
     }
     #bob-sprite {
-      /* bob-modes.png is 782×504 and shows 3 poses side-by-side.
-         Each pose is ~260×504 px wide.
-         We scale + shift to show only the relevant pose at 80px wide. */
-      position: absolute;
-      height: 120px;
-      width: auto;
-      /* default: happy pose (left third) */
-      left: 0;
+      width: 80px;
+      height: auto;
+      display: block;
     }
   </style>
 </head>
@@ -515,20 +506,6 @@
       const mood   = pct > 60 ? 'happy' : pct > 30 ? 'neutral' : 'sad';
       const sprite = document.getElementById('bob-sprite');
       const wrap   = document.getElementById('bob-sprite-wrap');
-
-      // bob-modes.png is 782×504px with 3 poses side-by-side (~260px each).
-      // We display at height:120px → scale = 120/504 ≈ 0.238 → each pose is ~62px wide.
-      // Pose order (left→right): happy | neutral | sad
-      const SCALE        = 120 / 504;
-      const POSE_W_ORIG  = 782 / 3;           // ~260px
-      const POSE_W_DISP  = POSE_W_ORIG * SCALE; // ~62px
-      const poseIndex    = mood === 'happy' ? 0 : mood === 'neutral' ? 1 : 2;
-      const leftOffset   = -(poseIndex * POSE_W_ORIG * SCALE);
-
-      sprite.style.height = '120px';
-      sprite.style.width  = 'auto';
-      sprite.style.left   = leftOffset + 'px';
-      wrap.style.width    = Math.round(POSE_W_DISP) + 'px';
 
       // Quip — pick a new one from the right mood pool
       const pool = BOB_QUIPS[mood];
