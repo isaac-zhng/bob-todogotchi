@@ -35,7 +35,10 @@ function createBobWindow() {
     },
   });
   bobWindow.loadFile(path.join(__dirname, 'src', 'popup.html'));
-  bobWindow.on('closed', () => { bobWindow = null; });
+  bobWindow.on('closed', () => {
+    bobWindow = null;
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('bob-closed');
+  });
 }
 
 ipcMain.on('open-bob-popup',  () => createBobWindow());

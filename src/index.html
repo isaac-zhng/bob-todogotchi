@@ -570,6 +570,10 @@
 
     /* ── IPC sync from Bob popup ── */
     if (window.electronAPI) {
+      window.electronAPI.onBobClosed(() => {
+        state.bobVisible = false;
+        render();
+      });
       window.electronAPI.onStateSync(json => {
         try { state = JSON.parse(json); } catch (_) {}
         render();

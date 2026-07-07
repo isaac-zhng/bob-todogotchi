@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeBobPopup:  () => ipcRenderer.send('close-bob-popup'),
   broadcastState: (stateJSON) => ipcRenderer.send('state-update', stateJSON),
   onStateSync:    (cb) => ipcRenderer.on('state-sync', (_e, json) => cb(json)),
+  onBobClosed:    (cb) => ipcRenderer.on('bob-closed', () => cb()),
   moveBobWindow:  (x, y) => ipcRenderer.send('bob-move', { x, y }),
   isElectron: true,
 });
